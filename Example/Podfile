@@ -1,0 +1,12 @@
+source 'https://github.com/CocoaPods/Specs.git'
+use_frameworks!
+
+target 'PushReview_Example', :exclusive => true do
+  pod 'PushReview', :path => '../'
+end
+
+target 'PushReview_Tests', :exclusive => true do
+  pod 'PushReview', :path => '../'
+
+  
+end
