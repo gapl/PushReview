@@ -1,11 +1,11 @@
 source 'https://github.com/CocoaPods/Specs.git'
 use_frameworks!
 
-target 'PushReview_Example', :exclusive => true do
+target 'PushReview_Example' do
   pod 'PushReview', :path => '../'
 end
 
-target 'PushReview_Tests', :exclusive => true do
+target 'PushReview_Tests' do
   pod 'PushReview', :path => '../'
 
   

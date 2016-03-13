@@ -1,0 +1,16 @@
+PODS:
+  - PushReview (0.1.0)
+
+DEPENDENCIES:
+  - PushReview (from `../`)
+
+EXTERNAL SOURCES:
+  PushReview:
+    :path: ../
+
+SPEC CHECKSUMS:
+  PushReview: 816804764e84e0457235ac8b61315cb96b9e287a
+
+PODFILE CHECKSUM: f5e551c22a480b5e24babda7d41ffc562de34fac
+
+COCOAPODS: 1.0.0.beta.5
