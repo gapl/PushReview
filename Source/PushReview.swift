@@ -111,9 +111,7 @@ public class PushReview: NSObject {
     /**
      ## PushReview  👻
      
-     This function configures `PushReview` for your app and is essentially all you need to do to make this work. It should be called somewhere in your `application:didFinishLaunchingWithOptions:`'s implementation. When `appDelegate` parameter is used, delegate functions pertaining notification handling are swizzled so as to make this library work.
-     
-     If that is not your thing, you can leave `appDelegate` parameter empty. In this case, make sure to implement these delegate functions yourself and call appropriate `PushReview` functions. See documentation for `didReceiveNotification:` and `handleActionWithIdentifier:forNotification:` of `PushReview`.
+     This function configures `PushReview` for your app and is essentially all you need to do to make this work. It should be called somewhere in your `application:didFinishLaunchingWithOptions:`'s implementation. `appDelegate` parameter is used to swizzle `UIApplicationDelegate` methods pertaining notification handling.
      
      To schedule a notification prompting the user to review the app simply call `PushReview.scheduleReviewNotification()` when you know you have a happy user, e.g. he just won something in your game or did a conversion event in your app. User will then get a notification to review the app a while after he stops using it.
      
@@ -129,9 +127,9 @@ public class PushReview: NSObject {
      - Important: Make sure to call `PushReview.registerNotificationSettings()` somewhere in your app, otherwise PushReview can't display any notifications. Good place to call it is after asking the user for push notifications yourself.
      
      - parameter appId: Your app's Apple Id string used to display proper App Store listing.
-     - parameter appDelegate: Recommended way of using this library is to pass along the `UIApplicationDelegate` and everything gets taken care by itself. When this parameter is not set, make sure to call proper functions by yourself.
+     - parameter appDelegate: Pass along the `UIApplicationDelegate` and everything gets taken care by PushReview.
      */
-    public static func configureWithAppId(appId: String, appDelegate: UIApplicationDelegate? = nil) {
+    public static func configureWithAppId(appId: String, appDelegate: UIApplicationDelegate) {
         self.appId = appId
         
         struct Static {
@@ -265,82 +263,6 @@ extension PushReview {
     }
 }
 
-// MARK: - Application delegate function handling
-
-extension PushReview {
-    /**
-     ### Handling receiving notifications
-     If library is instantiated without an `appDelegate` parameter when calling `configureWithAppId:appDelegate:`, you must implement the following two `UIApplicationDelegate` functions and call this function from within:
-     
-     ```
-     - application:didReceiveLocalNotification:
-     - application:didReceiveRemoteNotification:fetchCompletionHandler:
-     ```
-     
-     For example, you at least need stub implementations like:
-     
-     ```
-     func application(application: UIApplication, didReceiveLocalNotification notification: UILocalNotification) {
-        PushReview.didReceiveNotification(notification.userInfo)
-     }
-     
-     func application(application: UIApplication, didReceiveRemoteNotification userInfo: [NSObject : AnyObject], fetchCompletionHandler completionHandler: (UIBackgroundFetchResult) -> Void) {
-        PushReview.didReceiveNotification(userInfo)
-        completionHandler(.NoData)
-     }
-     ```
-     
-     - Important: Implementation of this function is not necessary when using the preffered method which is passing `appDelegate` in `configureWithAppId:appDelegate:` and as such implicitly using method swizzling.
-     
-     - parameter userInfo: Dictionary containing `userInfo` of received notification. In case of local notification, you can extract this as `notification.userInfo`.
-     */
-    private static func didReceiveNotification(userInfo: [NSObject : AnyObject]?) {
-        if let category = userInfo?[Notification.Category] as? String where category == Notification.ReviewCategory && !PushReview.handledReviewPushNotification {
-            if PushReview.shouldPerformDefaultOption {
-                PushReview.reviewApp()
-            } else {
-                PushReview.presentReviewAlert()
-            }
-        }
-    }
-    
-    /**
-     ### Handling push review actions
-     If library is instantiated without an `appDelegate` parameter when calling `configureWithAppId:appDelegate:`, you must implement the following two `UIApplicationDelegate` functions and call this function from within:
-     
-     ```
-     - application:handleActionWithIdentifier:forRemoteNotification:completionHandler:
-     - application:handleActionWithIdentifier:forLocalNotification:completionHandler:
-     ```
-     
-     For example, you at least need a stub implementation like:
-     
-     ```
-     func application(application: UIApplication, handleActionWithIdentifier identifier: String?, forLocalNotification notification: UILocalNotification, completionHandler: () -> Void) {
-        PushReview.handleActionWithIdentifier(identifier, forNotification: userInfo)
-        completionHandler()
-     }
-     ```
-     
-     - Important: Implementation of this function is not necessary when using the preffered method which is passing `appDelegate` in `configureWithAppId:appDelegate:` and as such implicitly using method swizzling.
-     
-     - parameter identifier: Action identifier retrieved as delegate function parameter.
-     - parameter forNotification: Notification user info retreived as delegate function parameter.
-     */
-    private static func handleActionWithIdentifier(identifier: String?, forNotification userInfo: [NSObject : AnyObject]?) {
-        if let category = userInfo?[Notification.Category] as? String where category == Notification.ReviewCategory {
-            switch identifier {
-            case .Some(Notification.Review):
-                PushReview.reviewApp()
-            case .Some(Notification.Later):
-                PushReview.scheduleReviewNotification(delay: PushReview.timeBeforeReminding)
-            default:
-                break
-            }
-        }
-    }
-}
-
 // MARK: - Private implementation
 
 private let delay = { (delay: Double, closure: () -> Void) in
@@ -427,8 +349,7 @@ extension PushReview: UIAlertViewDelegate {
      Swizzles appropriate application delegate methods to handle notif5ications internally.
      - parameter delegate: `UIApplicationDelegate` instance for which methods should be swizzled.
      */
-    private static func swizzle(delegate: UIApplicationDelegate?) {
-        guard let delegate = delegate else { return }
+    private static func swizzle(delegate: UIApplicationDelegate) {
         struct Static {
             static var token: dispatch_once_t = 0
         }
@@ -451,6 +372,38 @@ extension PushReview: UIAlertViewDelegate {
             swizzle(originalSelector: Selector("application:didReceiveRemoteNotification:fetchCompletionHandler:"), swizzledSelector: Selector("pushReview_application:didReceiveRemoteNotification:fetchCompletionHandler:"))
             swizzle(originalSelector: Selector("application:handleActionWithIdentifier:forRemoteNotification:completionHandler:"), swizzledSelector: Selector("pushReview_application:handleActionWithIdentifier:forRemoteNotification:completionHandler:"))
             swizzle(originalSelector: Selector("application:handleActionWithIdentifier:forLocalNotification:completionHandler:"), swizzledSelector: Selector("pushReview_application:handleActionWithIdentifier:forLocalNotification:completionHandler:"))
+        }
+    }
+    
+    /**
+     Called when a notification is received, either a local one or a remote notification.
+     - parameter userInfo: Dictionary containing `userInfo` of received notification. In case of local notification, you can extract this as `notification.userInfo`.
+     */
+    private static func didReceiveNotification(userInfo: [NSObject : AnyObject]?) {
+        if let category = userInfo?[Notification.Category] as? String where category == Notification.ReviewCategory && !PushReview.handledReviewPushNotification {
+            if PushReview.shouldPerformDefaultOption {
+                PushReview.reviewApp()
+            } else {
+                PushReview.presentReviewAlert()
+            }
+        }
+    }
+    
+    /**
+     Called when a notification action is triggered, either from a local notification or a remote notification.
+     - parameter identifier: Action identifier retrieved as delegate function parameter.
+     - parameter forNotification: Notification user info retreived as delegate function parameter.
+     */
+    private static func handleActionWithIdentifier(identifier: String?, forNotification userInfo: [NSObject : AnyObject]?) {
+        if let category = userInfo?[Notification.Category] as? String where category == Notification.ReviewCategory {
+            switch identifier {
+            case .Some(Notification.Review):
+                PushReview.reviewApp()
+            case .Some(Notification.Later):
+                PushReview.scheduleReviewNotification(delay: PushReview.timeBeforeReminding)
+            default:
+                break
+            }
         }
     }
 }

@@ -28,6 +28,7 @@ class ViewController: UIViewController {
      */
     @IBAction func scheduleNotification(sender: AnyObject) {
         PushReview.timeBeforePresentingWhenAppEntersBackground = 10
+        PushReview.timeBeforeReminding = 10
         PushReview.scheduleReviewNotification()
     }
 }
