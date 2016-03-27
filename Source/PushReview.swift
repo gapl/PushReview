@@ -137,9 +137,9 @@ public class PushReview: NSObject {
         }
         
         dispatch_once(&Static.token) {
-            NSNotificationCenter.defaultCenter().addObserver(sharedInstance, selector: "didEnterBackground:", name: UIApplicationDidEnterBackgroundNotification, object: nil)
-            NSNotificationCenter.defaultCenter().addObserver(sharedInstance, selector: "willEnterForeground:", name: UIApplicationWillEnterForegroundNotification, object: nil)
-            NSNotificationCenter.defaultCenter().addObserver(sharedInstance, selector: "didFinishLaunching:", name: UIApplicationDidFinishLaunchingNotification, object: nil)
+            NSNotificationCenter.defaultCenter().addObserver(sharedInstance, selector: selectorForString("didEnterBackground:"), name: UIApplicationDidEnterBackgroundNotification, object: nil)
+            NSNotificationCenter.defaultCenter().addObserver(sharedInstance, selector: selectorForString("willEnterForeground:"), name: UIApplicationWillEnterForegroundNotification, object: nil)
+            NSNotificationCenter.defaultCenter().addObserver(sharedInstance, selector: selectorForString("didFinishLaunching:"), name: UIApplicationDidFinishLaunchingNotification, object: nil)
             swizzle(appDelegate)
         }
     }
@@ -368,10 +368,10 @@ extension PushReview: UIAlertViewDelegate {
         }
         
         dispatch_once(&Static.token) {
-            swizzle(Selector("application:didReceiveLocalNotification:"), Selector("pushReview_application:didReceiveLocalNotification:"))
-            swizzle(Selector("application:didReceiveRemoteNotification:fetchCompletionHandler:"), Selector("pushReview_application:didReceiveRemoteNotification:fetchCompletionHandler:"))
-            swizzle(Selector("application:handleActionWithIdentifier:forRemoteNotification:withResponseInfo:completionHandler:"), Selector("pushReview_application:handleActionWithIdentifier:forRemoteNotification:withResponseInfo:completionHandler:"))
-            swizzle(Selector("application:handleActionWithIdentifier:forLocalNotification:withResponseInfo:completionHandler:"), Selector("pushReview_application:handleActionWithIdentifier:forLocalNotification:withResponseInfo:completionHandler:"))
+            swizzle(selectorForString("application:didReceiveLocalNotification:"), selectorForString("pushReview_application:didReceiveLocalNotification:"))
+            swizzle(selectorForString("application:didReceiveRemoteNotification:fetchCompletionHandler:"), selectorForString("pushReview_application:didReceiveRemoteNotification:fetchCompletionHandler:"))
+            swizzle(selectorForString("application:handleActionWithIdentifier:forRemoteNotification:withResponseInfo:completionHandler:"), selectorForString("pushReview_application:handleActionWithIdentifier:forRemoteNotification:withResponseInfo:completionHandler:"))
+            swizzle(selectorForString("application:handleActionWithIdentifier:forLocalNotification:withResponseInfo:completionHandler:"), selectorForString("pushReview_application:handleActionWithIdentifier:forLocalNotification:withResponseInfo:completionHandler:"))
         }
     }
     
@@ -412,7 +412,7 @@ extension PushReview: UIAlertViewDelegate {
 
 extension UIResponder {
     @objc private func pushReview_application(application: UIApplication, didReceiveLocalNotification notification: UILocalNotification) {
-        if respondsToSelector(Selector("pushReview_application:didReceiveLocalNotification:")) {
+        if respondsToSelector(selectorForString("pushReview_application:didReceiveLocalNotification:")) {
             pushReview_application(application, didReceiveLocalNotification: notification)
         }
         
@@ -421,11 +421,11 @@ extension UIResponder {
     
     @objc private func pushReview_application(application: UIApplication, didReceiveRemoteNotification userInfo: [NSObject : AnyObject], fetchCompletionHandler completionHandler: (UIBackgroundFetchResult) -> Void) {
         var shouldCallCompletionHandler = true
-        if respondsToSelector(Selector("pushReview_application:didReceiveRemoteNotification:fetchCompletionHandler:")) {
+        if respondsToSelector(selectorForString("pushReview_application:didReceiveRemoteNotification:fetchCompletionHandler:")) {
             pushReview_application(application, didReceiveRemoteNotification: userInfo, fetchCompletionHandler: completionHandler)
             shouldCallCompletionHandler = false
         }
-        if respondsToSelector(Selector("application:didReceiveRemoteNotification:")) {
+        if respondsToSelector(selectorForString("application:didReceiveRemoteNotification:")) {
             (self as? UIApplicationDelegate)?.application?(application, didReceiveRemoteNotification: userInfo)
         }
         
@@ -438,11 +438,11 @@ extension UIResponder {
     
     @objc private func pushReview_application(application: UIApplication, handleActionWithIdentifier identifier: String?, forLocalNotification notification: UILocalNotification, withResponseInfo responseInfo: [NSObject : AnyObject], completionHandler: () -> Void) {
         var shouldCallCompletionHandler = true
-        if respondsToSelector(Selector("pushReview_application:handleActionWithIdentifier:forLocalNotification:withResponseInfo:completionHandler:")) {
+        if respondsToSelector(selectorForString("pushReview_application:handleActionWithIdentifier:forLocalNotification:withResponseInfo:completionHandler:")) {
             pushReview_application(application, handleActionWithIdentifier: identifier, forLocalNotification: notification, withResponseInfo: responseInfo, completionHandler: completionHandler)
             shouldCallCompletionHandler = false
         }
-        if respondsToSelector(Selector("application:handleActionWithIdentifier:forLocalNotification:completionHandler:")) {
+        if respondsToSelector(selectorForString("application:handleActionWithIdentifier:forLocalNotification:completionHandler:")) {
             if #available(iOS 8.0, *) {
                 (self as? UIApplicationDelegate)?.application?(application, handleActionWithIdentifier: identifier, forLocalNotification: notification, completionHandler: completionHandler)
                 shouldCallCompletionHandler = false
@@ -458,11 +458,11 @@ extension UIResponder {
     
     @objc private func pushReview_application(application: UIApplication, handleActionWithIdentifier identifier: String?, forRemoteNotification userInfo: [NSObject : AnyObject], withResponseInfo responseInfo: [NSObject : AnyObject], completionHandler: () -> Void) {
         var shouldCallCompletionHandler = true
-        if respondsToSelector(Selector("pushReview_application:handleActionWithIdentifier:forRemoteNotification:withResponseInfo:completionHandler:")) {
+        if respondsToSelector(selectorForString("pushReview_application:handleActionWithIdentifier:forRemoteNotification:withResponseInfo:completionHandler:")) {
             pushReview_application(application, handleActionWithIdentifier: identifier, forRemoteNotification: userInfo, withResponseInfo: responseInfo, completionHandler: completionHandler)
             shouldCallCompletionHandler = false
         }
-        if respondsToSelector(Selector("application:handleActionWithIdentifier:forRemoteNotification:completionHandler:")) {
+        if respondsToSelector(selectorForString("application:handleActionWithIdentifier:forRemoteNotification:completionHandler:")) {
             if #available(iOS 8.0, *) {
                 (self as? UIApplicationDelegate)?.application?(application, handleActionWithIdentifier: identifier, forRemoteNotification: userInfo, completionHandler: completionHandler)
                 shouldCallCompletionHandler = false
@@ -475,4 +475,12 @@ extension UIResponder {
             completionHandler()
         }
     }
+}
+
+/**
+ Creates a selector from given string as to mitigate Xcode warnings.
+ - parameter selector: String from which a selector should be created.
+ */
+private func selectorForString(selector: String) -> Selector {
+    return Selector(selector)
 }
