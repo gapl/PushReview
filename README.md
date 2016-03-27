@@ -18,8 +18,23 @@ Opens up the app and goes straight to the App Store<br />to review. Same thing h
 
 In order to start using PushReview, there are two calls you need to make:
 
-1. Call `PushReview.configureWithAppId(appId: "app_id", appDelegate: self)` in the beginning of your delegate's `application:didFinishLaunchingWithOptions:` method with the app id provided by Apple.
+1. Call `PushReview.configureWithAppId(appId: "app_id", appDelegate: self)` in your delegate's `application:didFinishLaunchingWithOptions:` method with the app id provided by Apple.
 2. As PushReview needs to display notifications, you need to call `PushReview.registerNotificationSettings()` somewhere in your app. A good place to call it is right after asking the user for push notifications yourself.
+
+#### Example
+
+```swift
+func application(application: UIApplication, didFinishLaunchingWithOptions launchOptions: [NSObject: AnyObject]?) -> Bool {
+
+    // Your app's code...
+
+    PushReview.configureWithAppId("0123456789", appDelegate: self)
+    PushReview.registerNotificationSettings()
+    PushReview.usesBeforePresenting = 10
+
+    return true
+}
+```
 
 #### Asking for review
 
@@ -71,11 +86,11 @@ Recommend way to install PushReview is using [CocoaPods](http://cocoapods.org).
 
 Just put this in your `Podfile`:
 
-~~~ruby
+```ruby
 use_frameworks!
 
 pod 'PushReview'
-~~~
+```
 
 When using iOS 7, copy and paste the `PushReview.swift` file in your Xcode project.
 

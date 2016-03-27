@@ -355,7 +355,7 @@ extension PushReview: UIAlertViewDelegate {
         }
         
         // Swizzles original selector with given swizzled selector
-        let swizzle = { (originalSelector originalSelector: Selector, swizzledSelector swizzledSelector: Selector) in
+        let swizzle = { (originalSelector: Selector, swizzledSelector: Selector) in
             let originalMethod = class_getInstanceMethod(delegate.dynamicType, originalSelector)
             let swizzledMethod = class_getInstanceMethod(delegate.dynamicType, swizzledSelector)
             
@@ -368,10 +368,10 @@ extension PushReview: UIAlertViewDelegate {
         }
         
         dispatch_once(&Static.token) {
-            swizzle(originalSelector: Selector("application:didReceiveLocalNotification:"), swizzledSelector: Selector("pushReview_application:didReceiveLocalNotification:"))
-            swizzle(originalSelector: Selector("application:didReceiveRemoteNotification:fetchCompletionHandler:"), swizzledSelector: Selector("pushReview_application:didReceiveRemoteNotification:fetchCompletionHandler:"))
-            swizzle(originalSelector: Selector("application:handleActionWithIdentifier:forRemoteNotification:withResponseInfo:completionHandler:"), swizzledSelector: Selector("pushReview_application:handleActionWithIdentifier:forRemoteNotification:withResponseInfo:completionHandler:"))
-            swizzle(originalSelector: Selector("application:handleActionWithIdentifier:forLocalNotification:withResponseInfo:completionHandler:"), swizzledSelector: Selector("pushReview_application:handleActionWithIdentifier:forLocalNotification:withResponseInfo:completionHandler:"))
+            swizzle(Selector("application:didReceiveLocalNotification:"), Selector("pushReview_application:didReceiveLocalNotification:"))
+            swizzle(Selector("application:didReceiveRemoteNotification:fetchCompletionHandler:"), Selector("pushReview_application:didReceiveRemoteNotification:fetchCompletionHandler:"))
+            swizzle(Selector("application:handleActionWithIdentifier:forRemoteNotification:withResponseInfo:completionHandler:"), Selector("pushReview_application:handleActionWithIdentifier:forRemoteNotification:withResponseInfo:completionHandler:"))
+            swizzle(Selector("application:handleActionWithIdentifier:forLocalNotification:withResponseInfo:completionHandler:"), Selector("pushReview_application:handleActionWithIdentifier:forLocalNotification:withResponseInfo:completionHandler:"))
         }
     }
     
