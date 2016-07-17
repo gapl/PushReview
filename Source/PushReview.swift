@@ -88,7 +88,7 @@ public class PushReview: NSObject {
     public static var timeBeforePresentingWhenAppEntersBackground: NSTimeInterval = 60*5
     
     /// When set, it will present a notification after the app has been opened a sufficient amount of times based on `application:didFinishLaunchingWithOptions:`
-    public static var usesBeforePresenting: Int?
+    public static var usesBeforePresenting: NSNumber?
     
     /// Notification's body text - don't be scared to throw some emojis in there, go crazy!
     public static var bodyText = "Hey there! Would you be so cool as to give us a thumbs up on the App Store? 👻"
@@ -203,7 +203,7 @@ extension PushReview {
      - parameter delay: When this parameter is present, it overrides `PushReview.timeBeforeReminding` variable
      - parameter scheduleEvenIfAlreadyReviewed: By default, notification is not scheduled if user has already reviewed this version. This can be overriden (e.g. for testing) by setting this parameter to `true`
      */
-    public static func scheduleReviewNotification(delay delay: NSTimeInterval? = nil, scheduleEvenIfAlreadyReviewed forceSchedule: Bool = false) {
+    public static func scheduleReviewNotification(delay delay: NSNumber? = nil, scheduleEvenIfAlreadyReviewed forceSchedule: Bool = false) {
         guard reviewedThisVersion == false || forceSchedule else { return }
         
         let localNotification = UILocalNotification()
@@ -213,7 +213,7 @@ extension PushReview {
         localNotification.soundName = UILocalNotificationDefaultSoundName
         localNotification.userInfo = [Notification.Category: Notification.ReviewCategory]
         
-        if let delay = delay {
+        if let delay = delay?.doubleValue {
             localNotification.fireDate = NSDate(timeIntervalSinceNow: delay)
         }
         
@@ -316,7 +316,7 @@ extension PushReview: UIAlertViewDelegate {
                 // Increase app start counter and optionally schedule review notification right away if condition is met
                 let appStarts = NSUserDefaults.standardUserDefaults().integerForKey(UserDefaultsKey.AppStarts) + 1
                 NSUserDefaults.standardUserDefaults().setInteger(appStarts, forKey: UserDefaultsKey.AppStarts)
-                if appStarts == PushReview.usesBeforePresenting {
+                if appStarts == PushReview.usesBeforePresenting?.integerValue {
                     PushReview.scheduleReviewNotification(delay: 0)
                 }
             }
