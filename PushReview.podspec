@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name             = "PushReview"
-  s.version          = "0.2.2"
+  s.version          = "0.2.3"
   s.summary          = "New unobtrusive way of asking users to leave a review on the App Store."
   s.description      = <<-DESC
                        PushReview is a library aimed at getting your app the reviews it deserves. It asks users for an App Store review when they are done using the app and are in an idle state.
